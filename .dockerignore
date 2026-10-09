@@ -1,0 +1,7 @@
+**/bin
+**/obj
+**/.vs
+LkFinances.Api.Tests
+keys
+.env
+*.xlsx
