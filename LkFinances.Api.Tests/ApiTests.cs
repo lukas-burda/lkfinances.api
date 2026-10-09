@@ -188,7 +188,7 @@ public class ApiTests(ApiFactory api)
     }
 
     [Fact]
-    public async Task Importing_the_same_spreadsheet_twice_adds_nothing_the_second_time()
+    public async Task Importing_the_same_file_twice_adds_nothing_the_second_time()
     {
         var (client, ledgerId) = await api.SignedInOwnerAsync();
 
@@ -197,20 +197,18 @@ public class ApiTests(ApiFactory api)
         var count = await api.WithDbAsync(db => db.Transactions.CountAsync(t => t.LedgerId == ledgerId));
         var summary = await client.GetFromJsonAsync<LedgerSummaryResult>($"/api/ledgers/{ledgerId}/summary?year=2026", Json);
 
-        Assert.Equal(11, first.Inserted);
+        Assert.Equal(10, first.Inserted);
         Assert.Equal(0, second.Inserted);
-        Assert.Equal(11, second.AlreadyImported);
-        Assert.Equal(11, count);
+        Assert.Equal(10, second.AlreadyImported);
+        Assert.Equal(10, count);
         Assert.Equal(new MonthLine(1, 5000, 1101.86m, 3898.14m), summary!.Months[0]);
-        var surplus = summary.Balances.Single(b => b.Bucket == Bucket.Surplus);
-        Assert.Equal(7858.14m, surplus.Computed);
-        Assert.Equal(1500m, surplus.Asserted);
-        Assert.Equal(350m, summary.Balances.Single(b => b.Bucket == Bucket.Reserve).Computed);
+        Assert.Equal(7858.14m, summary.Balances.Single(b => b.Bucket == Bucket.Surplus).Computed);
+        Assert.Equal(300m, summary.Balances.Single(b => b.Bucket == Bucket.Reserve).Computed);
     }
 
     private Task<ImportResult> ImportAsync(Guid ledgerId) => api.WithDbAsync(db =>
     {
-        using var stream = SpreadsheetFixture.Build();
-        return LedgerImporter.ImportAsync(db, ledgerId, SpreadsheetReader.Read(stream), CancellationToken.None);
+        using var stream = ImportFixture.CsvStream();
+        return LedgerImporter.ImportAsync(db, ledgerId, ImportReader.Read(stream, "gastos.csv"), CancellationToken.None);
     });
 }

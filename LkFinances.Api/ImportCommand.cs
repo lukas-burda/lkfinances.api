@@ -6,8 +6,8 @@ using Microsoft.EntityFrameworkCore;
 namespace LkFinances.Api;
 
 /// <summary>
-/// <c>import --file &lt;path.xlsx&gt; [--email &lt;owner&gt;]</c>. Imports into the owner's first ledger (Principal).
-/// Running it again with the same file adds nothing.
+/// <c>import --file &lt;arquivo.csv|xlsx&gt; [--email &lt;dono&gt;]</c>.
+/// Cabeçalho: data;descricao;valor;type;status;observacao
 /// </summary>
 public static class ImportCommand
 {
@@ -19,7 +19,7 @@ public static class ImportCommand
         var email = Option(args, "--email") ?? services.GetRequiredService<IConfiguration>()["BOOTSTRAP_EMAIL"];
         if (file is null || email is null)
         {
-            Console.Error.WriteLine("Uso: import --file <planilha.xlsx> [--email <dono>]");
+            Console.Error.WriteLine("Uso: import --file <arquivo.csv|xlsx> [--email <dono>]");
             return 2;
         }
 
@@ -37,10 +37,10 @@ public static class ImportCommand
         }
 
         await using var stream = File.OpenRead(file);
-        var result = await LedgerImporter.ImportAsync(db, ledgerId.Value, SpreadsheetReader.Read(stream), CancellationToken.None);
+        var result = await LedgerImporter.ImportAsync(db, ledgerId.Value, ImportReader.Read(stream, file), CancellationToken.None);
         Console.WriteLine(
             $"Lidas {result.Read}, inseridas {result.Inserted}, já importadas {result.AlreadyImported}, " +
-            $"ignoradas {result.Skipped}, categorias novas {result.CategoriesCreated}, saldos reais {result.BalancesAsserted}.");
+            $"ignoradas {result.Skipped}, categorias novas {result.CategoriesCreated}.");
         return 0;
     }
 

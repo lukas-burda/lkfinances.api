@@ -1,8 +1,8 @@
 name: lkfinances
 
 # Expects the web repo as a sibling: ../lkfinances.web
-#   git clone <api> lkfinances.api
-#   git clone <web> lkfinances.web
+#   git clone https://github.com/lukas-burda/lkfinances.api.git
+#   git clone https://github.com/lukas-burda/lkfinances.web.git
 #   cd lkfinances.api && cp .env.example .env && docker compose up -d --build
 
 services:
